@@ -13,12 +13,38 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
+    <section id="auth-gate" class="auth-gate" aria-label="ยืนยันสิทธิ์เข้าดู Dashboard">
+      <div class="auth-card">
+        <h1>ยืนยันสิทธิ์เข้าดู Dashboard</h1>
+        <p class="auth-copy">สำหรับผู้ปกครอง ป.1 งาน Gift โรงเรียนไตรพัฒน์</p>
+        <form id="auth-form" class="auth-form" novalidate>
+          <label for="auth-phone">เบอร์โทรศัพท์ผู้ปกครอง</label>
+          <input
+            id="auth-phone"
+            name="phone"
+            type="tel"
+            inputmode="numeric"
+            autocomplete="tel"
+            placeholder="เช่น 0891234567"
+            maxlength="14"
+            required
+          />
+          <button type="submit">เข้าสู่ Dashboard</button>
+          <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
     <div id="pull-refresh" class="pull-refresh" aria-hidden="true">รูดลงเพื่อรีเฟรช</div>
-    <div class="page">
+    <div id="dashboard-page" class="page" hidden>
       <header class="header">
         <div class="header-copy">
           <h1 id="dashboard-title">งาน Gift โรงเรียนไตรพัฒน์ — เงินกองกลาง</h1>
           <p id="dashboard-subtitle" class="subtitle" hidden></p>
+        </div>
+        <div id="viewer-info" class="viewer-info" hidden>
+          <p id="viewer-name" class="viewer-name">—</p>
+          <button id="logout-btn" class="logout-btn" type="button">ออกจากระบบ</button>
         </div>
       </header>
 

@@ -3,7 +3,16 @@
   const sheets = window.DashboardSheets;
   const charts = window.DashboardCharts;
   const refreshMs = config.refreshIntervalMs || 5000;
+  const authStorageKey = "tripat_dashboard_auth_session";
 
+  const authGate = document.getElementById("auth-gate");
+  const authForm = document.getElementById("auth-form");
+  const authPhoneInput = document.getElementById("auth-phone");
+  const authMessageEl = document.getElementById("auth-message");
+  const dashboardPage = document.getElementById("dashboard-page");
+  const viewerInfoEl = document.getElementById("viewer-info");
+  const viewerNameEl = document.getElementById("viewer-name");
+  const logoutBtn = document.getElementById("logout-btn");
   const titleEl = document.getElementById("dashboard-title");
   const subtitleEl = document.getElementById("dashboard-subtitle");
   const statusEl = document.getElementById("status");
@@ -52,6 +61,7 @@
   let hasData = false;
   let loading = false;
   let timer = null;
+  let authPassed = false;
 
   function setStatus(message, kind) {
     statusEl.hidden = !message;
@@ -153,6 +163,7 @@
   }
 
   document.addEventListener("visibilitychange", function () {
+    if (!authPassed) return;
     if (document.hidden) {
       if (timer) {
         window.clearInterval(timer);
@@ -163,7 +174,137 @@
     startPolling();
   });
 
-  startPolling();
+  function normalizePhone(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function setAuthMessage(message, kind) {
+    if (!authMessageEl) return;
+    authMessageEl.textContent = message || "";
+    authMessageEl.className = "auth-message" + (kind ? " " + kind : "");
+  }
+
+  async function loadAllowedPhones() {
+    const response = await fetch("json/phone.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("PHONE_LIST_HTTP_" + response.status);
+    const rows = await response.json();
+    const phones = new Map();
+    (rows || []).forEach(function (item) {
+      const normalized = normalizePhone(item && item.phone);
+      if (!normalized || phones.has(normalized)) return;
+      phones.set(normalized, String((item && item.name) || "").trim() || normalized);
+    });
+    return phones;
+  }
+
+  function readStoredSession() {
+    const raw = window.localStorage.getItem(authStorageKey);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return null;
+      const phone = normalizePhone(parsed.phone);
+      const name = String(parsed.name || "").trim();
+      if (!phone) return null;
+      return { phone: phone, name: name };
+    } catch (_error) {
+      const legacyPhone = normalizePhone(raw);
+      return legacyPhone ? { phone: legacyPhone, name: "" } : null;
+    }
+  }
+
+  function saveSession(user) {
+    window.localStorage.setItem(
+      authStorageKey,
+      JSON.stringify({
+        phone: user.phone,
+        name: user.name || "",
+      })
+    );
+  }
+
+  function showViewer(user) {
+    if (!viewerInfoEl || !viewerNameEl) return;
+    const displayName = String((user && user.name) || "").trim();
+    viewerNameEl.textContent = displayName ? "ผู้ปกครอง: " + displayName : "ผู้ปกครอง: " + user.phone;
+    viewerInfoEl.hidden = false;
+  }
+
+  function unlockDashboard(user) {
+    authPassed = true;
+    if (authGate) authGate.hidden = true;
+    if (dashboardPage) dashboardPage.hidden = false;
+    if (user) showViewer(user);
+    startPolling();
+  }
+
+  async function initAuth() {
+    if (!authGate || !authForm || !authPhoneInput) {
+      unlockDashboard();
+      return;
+    }
+
+    if (dashboardPage) dashboardPage.hidden = true;
+    authGate.hidden = false;
+
+    let allowedPhones;
+    try {
+      allowedPhones = await loadAllowedPhones();
+    } catch (error) {
+      console.error(error);
+      setAuthMessage("โหลดรายชื่อผู้ปกครองไม่สำเร็จ กรุณารีเฟรชหน้า", "error");
+      return;
+    }
+
+    const rememberedSession = readStoredSession();
+    if (rememberedSession && allowedPhones.has(rememberedSession.phone)) {
+      const mappedName = allowedPhones.get(rememberedSession.phone);
+      unlockDashboard({
+        phone: rememberedSession.phone,
+        name: mappedName || rememberedSession.name || "",
+      });
+      return;
+    }
+
+    authForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const rawPhone = authPhoneInput.value;
+      const normalizedInput = normalizePhone(rawPhone);
+      if (!normalizedInput) {
+        setAuthMessage("กรุณากรอกเบอร์โทรศัพท์ก่อน", "error");
+        authPhoneInput.focus();
+        return;
+      }
+
+      authForm.querySelector("button").disabled = true;
+      setAuthMessage("กำลังตรวจสอบสิทธิ์...", "");
+      try {
+        const parentName = allowedPhones.get(normalizedInput);
+        if (!parentName) {
+          setAuthMessage("ไม่พบเบอร์โทรนี้ในรายชื่อผู้ปกครอง ป.1", "error");
+          return;
+        }
+        const session = { phone: normalizedInput, name: parentName };
+        saveSession(session);
+        setAuthMessage("ยืนยันสำเร็จ กำลังเข้าสู่ Dashboard...", "success");
+        unlockDashboard(session);
+      } catch (error) {
+        console.error(error);
+        setAuthMessage("ไม่สามารถตรวจสอบสิทธิ์ได้ กรุณาลองใหม่", "error");
+      } finally {
+        authForm.querySelector("button").disabled = false;
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function () {
+      window.localStorage.removeItem(authStorageKey);
+      window.location.reload();
+    });
+  }
+
+  initAuth();
 
   (function setupPullToRefresh() {
     const indicator = document.getElementById("pull-refresh");
