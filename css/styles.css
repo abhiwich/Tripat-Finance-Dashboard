@@ -136,6 +136,14 @@ body {
   color: #117a37;
 }
 
+.auth-version {
+  margin: 16px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
 .pull-refresh {
   position: fixed;
   top: 0;
