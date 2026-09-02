@@ -11,6 +11,24 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
+    <script>
+      (function () {
+        try {
+          var raw = window.localStorage.getItem("tripat_dashboard_auth_session");
+          if (!raw) return;
+          var phone = "";
+          try {
+            var parsed = JSON.parse(raw);
+            phone = parsed && parsed.phone ? String(parsed.phone) : "";
+          } catch (error) {
+            phone = String(raw);
+          }
+          if (String(phone).replace(/\D/g, "")) {
+            document.documentElement.classList.add("is-authed");
+          }
+        } catch (error) {}
+      })();
+    </script>
   </head>
   <body>
     <section id="auth-gate" class="auth-gate" aria-label="ยืนยันสิทธิ์เข้าดู Dashboard">

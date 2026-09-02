@@ -232,6 +232,7 @@
 
   function unlockDashboard(user) {
     authPassed = true;
+    document.documentElement.classList.add("is-authed");
     if (authGate) authGate.hidden = true;
     if (dashboardPage) dashboardPage.hidden = false;
     if (user) showViewer(user);
@@ -244,27 +245,15 @@
       return;
     }
 
+    const rememberedSession = readStoredSession();
+    if (rememberedSession) {
+      unlockDashboard(rememberedSession);
+      return;
+    }
+
+    document.documentElement.classList.remove("is-authed");
     if (dashboardPage) dashboardPage.hidden = true;
     authGate.hidden = false;
-
-    let allowedPhones;
-    try {
-      allowedPhones = await loadAllowedPhones();
-    } catch (error) {
-      console.error(error);
-      setAuthMessage("โหลดรายชื่อผู้ปกครองไม่สำเร็จ กรุณารีเฟรชหน้า", "error");
-      return;
-    }
-
-    const rememberedSession = readStoredSession();
-    if (rememberedSession && allowedPhones.has(rememberedSession.phone)) {
-      const mappedName = allowedPhones.get(rememberedSession.phone);
-      unlockDashboard({
-        phone: rememberedSession.phone,
-        name: mappedName || rememberedSession.name || "",
-      });
-      return;
-    }
 
     authForm.addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -279,7 +268,7 @@
       authForm.querySelector("button").disabled = true;
       setAuthMessage("กำลังตรวจสอบสิทธิ์...", "");
       try {
-        allowedPhones = await loadAllowedPhones();
+        const allowedPhones = await loadAllowedPhones();
         const parentName = allowedPhones.get(normalizedInput);
         if (!parentName) {
           setAuthMessage("ไม่พบเบอร์โทรนี้ในรายชื่อผู้ปกครอง ป.1", "error");

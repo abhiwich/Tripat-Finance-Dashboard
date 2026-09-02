@@ -26,6 +26,14 @@
   display: none !important;
 }
 
+html.is-authed .auth-gate {
+  display: none !important;
+}
+
+html.is-authed #dashboard-page {
+  display: block !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
