@@ -185,15 +185,14 @@
   }
 
   async function loadAllowedPhones() {
-    const response = await fetch("json/phone.json", { cache: "no-store" });
-    if (!response.ok) throw new Error("PHONE_LIST_HTTP_" + response.status);
-    const rows = await response.json();
+    const rows = await sheets.loadPhoneList(config);
     const phones = new Map();
     (rows || []).forEach(function (item) {
       const normalized = normalizePhone(item && item.phone);
       if (!normalized || phones.has(normalized)) return;
       phones.set(normalized, String((item && item.name) || "").trim() || normalized);
     });
+    if (!phones.size) throw new Error("PHONE_LIST_EMPTY");
     return phones;
   }
 
@@ -279,6 +278,7 @@
       authForm.querySelector("button").disabled = true;
       setAuthMessage("กำลังตรวจสอบสิทธิ์...", "");
       try {
+        allowedPhones = await loadAllowedPhones();
         const parentName = allowedPhones.get(normalizedInput);
         if (!parentName) {
           setAuthMessage("ไม่พบเบอร์โทรนี้ในรายชื่อผู้ปกครอง ป.1", "error");

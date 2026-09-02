@@ -11,8 +11,16 @@ window.DashboardConfig = {
     "https://docs.google.com/spreadsheets/d/1eMr-oGMc1WcreQ69h4V8MRkTBz4sEQ1j1t4vbUMLvuU/gviz/tq?tqx=out:csv&gid=0",
   ],
   titleFallback: "งาน Gift โรงเรียนไตรพัฒน์ — เงินกองกลาง",
-  version: "1.0.0",
+  version: "1.0.2",
   refreshIntervalMs: 5000,
+  phoneList: {
+    spreadsheetId: "16AI3IFbP9ac2ll1tupaF6-7WEn4r4DQKK_zY1dxKaeA",
+    gid: "0",
+    csvUrls: [
+      "https://docs.google.com/spreadsheets/d/16AI3IFbP9ac2ll1tupaF6-7WEn4r4DQKK_zY1dxKaeA/export?format=csv&gid=0",
+      "https://docs.google.com/spreadsheets/d/16AI3IFbP9ac2ll1tupaF6-7WEn4r4DQKK_zY1dxKaeA/gviz/tq?tqx=out:csv&gid=0",
+    ],
+  },
   sections: {
     overview: "A. Financial Overview",
     income: "B. Income by Source",

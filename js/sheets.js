@@ -440,6 +440,65 @@
     throw lastError;
   }
 
+  function headerLooksLike(value, names) {
+    const label = normalize(value);
+    return names.some(function (name) {
+      return label === name || label.indexOf(name) === 0;
+    });
+  }
+
+  function parsePhoneList(csvText) {
+    const rows = parseCsv(csvText);
+    if (!rows.length) return [];
+
+    let headerRow = 0;
+    let nameCol = 0;
+    let phoneCol = 1;
+    for (let r = 0; r < Math.min(rows.length, 5); r += 1) {
+      const row = rows[r] || [];
+      let foundName = -1;
+      let foundPhone = -1;
+      row.forEach(function (cell, index) {
+        if (foundName < 0 && headerLooksLike(cell, ["NAME", "ชื่อ"])) foundName = index;
+        if (foundPhone < 0 && headerLooksLike(cell, ["PHONE", "เบอร์", "TEL"])) foundPhone = index;
+      });
+      if (foundName >= 0 && foundPhone >= 0) {
+        headerRow = r;
+        nameCol = foundName;
+        phoneCol = foundPhone;
+        break;
+      }
+    }
+
+    const items = [];
+    for (let r = headerRow + 1; r < rows.length; r += 1) {
+      const name = cellAt(rows, r, nameCol);
+      const phone = cellAt(rows, r, phoneCol);
+      if (!name && !phone) continue;
+      items.push({ name: name, phone: phone });
+    }
+    return items;
+  }
+
+  async function loadPhoneList(config) {
+    const phoneConfig = config && config.phoneList;
+    const urls = phoneConfig && phoneConfig.csvUrls ? phoneConfig.csvUrls : [];
+    let lastError = new Error("ไม่สามารถอ่านรายชื่อผู้ปกครองได้");
+
+    for (let i = 0; i < urls.length; i += 1) {
+      try {
+        const csvText = await fetchCsv(urls[i]);
+        const items = parsePhoneList(csvText);
+        if (items.length) return items;
+        lastError = new Error("Phone sheet had no rows");
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError;
+  }
+
   global.DashboardSheets = {
     parseCsv: parseCsv,
     getCell: getCell,
@@ -447,5 +506,7 @@
     parseDate: parseDate,
     parseDashboard: parseDashboard,
     loadDashboard: loadDashboard,
+    parsePhoneList: parsePhoneList,
+    loadPhoneList: loadPhoneList,
   };
 })(window);
