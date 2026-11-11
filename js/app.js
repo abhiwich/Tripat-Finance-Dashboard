@@ -230,6 +230,28 @@
     viewerInfoEl.hidden = false;
   }
 
+  function logAccess(user) {
+    const url = config.accessLog && config.accessLog.webAppUrl;
+    if (!url || !user || !user.phone) return;
+    try {
+      fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        cache: "no-store",
+        keepalive: true,
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          name: user.name || "",
+          phone: user.phone,
+        }),
+      }).catch(function (error) {
+        console.error(error);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   function unlockDashboard(user) {
     authPassed = true;
     document.documentElement.classList.add("is-authed");
@@ -276,6 +298,7 @@
         }
         const session = { phone: normalizedInput, name: parentName };
         saveSession(session);
+        logAccess(session);
         setAuthMessage("ยืนยันสำเร็จ กำลังเข้าสู่ Dashboard...", "success");
         unlockDashboard(session);
       } catch (error) {

@@ -1,6 +1,6 @@
 /**
  * Spreadsheet connection, section labels, and cell fallbacks.
- * Keep in sync with DESIGN_SPEC.md section 7.
+ * Keep in sync with docs/DESIGN_SPEC.md section 7.
  */
 window.DashboardConfig = {
   spreadsheetId: "1eMr-oGMc1WcreQ69h4V8MRkTBz4sEQ1j1t4vbUMLvuU",
@@ -11,8 +11,12 @@ window.DashboardConfig = {
     "https://docs.google.com/spreadsheets/d/1eMr-oGMc1WcreQ69h4V8MRkTBz4sEQ1j1t4vbUMLvuU/gviz/tq?tqx=out:csv&gid=0",
   ],
   titleFallback: "งาน Gift โรงเรียนไตรพัฒน์ — เงินกองกลาง",
-  version: "1.0.2",
+  version: "1.0.3",
   refreshIntervalMs: 5000,
+  accessLog: {
+    webAppUrl:
+      "https://script.google.com/macros/s/AKfycbyyGMq9fzGeZo7zRCmnEc1dJjejC--c2blx4Zlfu0OWS5BTpaAr0Ke4fL_uRqwjsnCgfA/exec",
+  },
   phoneList: {
     spreadsheetId: "16AI3IFbP9ac2ll1tupaF6-7WEn4r4DQKK_zY1dxKaeA",
     gid: "0",

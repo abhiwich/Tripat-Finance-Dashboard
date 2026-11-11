@@ -28,8 +28,9 @@ temp/
 node_modules/
 dist/
 .cache/
+docs
 
 
-DESIGN_SPEC.md
+docs/DESIGN_SPEC.md
 Gift-Tripat-Finance.xlsx
-README-GIT_PULL.md
+docs/README-GIT_PULL.md
